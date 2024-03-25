@@ -1,0 +1,15 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{6b961c92-5678-45d1-a7ac-dd5003f03460}") = "Casper.Plugin.Jellyscrubberr", "Casper.Plugin.Jellyscrubberr\Casper.Plugin.Jellyscrubberr.csproj", "{6b961c92-5678-45d1-a7ac-dd5003f03460}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{6b961c92-5678-45d1-a7ac-dd5003f03460}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6b961c92-5678-45d1-a7ac-dd5003f03460}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6b961c92-5678-45d1-a7ac-dd5003f03460}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6b961c92-5678-45d1-a7ac-dd5003f03460}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal

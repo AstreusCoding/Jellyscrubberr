@@ -1,0 +1,13 @@
+# Ignore vscode stuff
+.vscode
+.editorconfig
+
+# ignore jellyfin folder
+jellyfin
+
+# ignore temp folder
+temp
+
+# ignore bin and obj folders
+bin
+obj 
