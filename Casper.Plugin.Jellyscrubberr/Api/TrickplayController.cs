@@ -12,6 +12,8 @@ using Casper.Plugin.Jellyscrubberr.Drawing;
 using System.ComponentModel.DataAnnotations;
 using System.Net.Mime;
 using System.Reflection;
+using MediaBrowser.Controller.Entities;
+using Casper.Plugin.Jellyscrubberr.FileManagement;
 
 namespace Casper.Plugin.Jellyscrubberr.Api;
 
@@ -34,7 +36,6 @@ public class TrickplayController : ControllerBase
     private readonly IMediaEncoder _mediaEncoder;
     private readonly IServerConfigurationManager _configurationManager;
     private readonly EncodingHelper _encodingHelper;
-
     private readonly PluginConfiguration _config;
 
     /// <summary>
@@ -63,7 +64,6 @@ public class TrickplayController : ControllerBase
         _mediaEncoder = mediaEncoder;
         _configurationManager = configurationManager;
         _encodingHelper = encodingHelper;
-
         _config = JellyscrubberrPlugin.Instance!.Configuration;
     }
 
@@ -108,16 +108,10 @@ public class TrickplayController : ControllerBase
 
         if (item != null)
         {
-            var path = VideoProcessor.GetExistingManifestPath(item, _fileSystem);
+            var path = ManifestManager.GetExistingManifestPath(item, _fileSystem);
             if (path != null)
             {
                 return PhysicalFile(path, MediaTypeNames.Application.Json);
-            }
-            else if (_config.OnDemandGeneration)
-            {
-                _ = new VideoProcessor(_loggerFactory, _loggerFactory.CreateLogger<VideoProcessor>(), _mediaEncoder, _configurationManager, _fileSystem, _appPaths, _libraryMonitor, _encodingHelper)
-                    .Run(item, CancellationToken.None).ConfigureAwait(false);
-                return StatusCode(503);
             }
         }
 
@@ -146,7 +140,7 @@ public class TrickplayController : ControllerBase
 
         if (item != null)
         {
-            var path = VideoProcessor.GetExistingBifPath(item, _fileSystem, width);
+            var path = BifManager.GetExistingBifPath(item, _fileSystem, width);
             if (path != null)
             {
                 return PhysicalFile(path, MediaTypeNames.Application.Octet);
