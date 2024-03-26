@@ -26,4 +26,6 @@ public class PluginConfiguration : BasePluginConfiguration
     public int imageInterval { get; set; } = 10000;
 
     public int[] imageWidthResolution { get; set; } = new[] { 320 };
+
+    public bool OnDemandGeneration { get; set; } = false;
 }
