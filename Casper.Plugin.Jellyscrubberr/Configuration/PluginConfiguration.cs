@@ -17,6 +17,9 @@ public class PluginConfiguration : BasePluginConfiguration
 
     public bool LocalMediaFolderSaving { get; set; } = true;
 
+    public FileSaveLocation fileSaveLocation { get; set; } = FileSaveLocation.SameFolder;
+    public string customFolderName { get; set; } = "trickplay";
+
     public HwAccelerationOptions hardwareAcceleration { get; set; } = HwAccelerationOptions.None;
 
     public ProcessPriorityClass ProcessPriority { get; set; } = ProcessPriorityClass.High;

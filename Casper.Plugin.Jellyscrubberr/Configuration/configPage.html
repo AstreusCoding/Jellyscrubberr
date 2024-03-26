@@ -19,6 +19,25 @@
                             <div class="fieldDescription"><strong>Do not use "Full" if using an AMD device through VAAPI.</strong></div>
                         </div>
                         <br />
+                        <div class="inputContainer">
+                            <!-- 
+                                Options for where the plugin should save the trickplay files.
+                            -->
+                            <select is="emby-select" id="bifSaveLocationTemp" name="BIF Save Location" label="BIF Save Location">
+                                <option id="optSaveLocationMediaFolder" value="SameFolder">Alongside media file</option>
+                                <option id="optSaveLocationPluginFolder" value="CustomFolder">Custom Folder</option>
+                            </select>
+                            <div class="fieldDescription">Choose where the plugin should save the trickplay files.</div>
+                            <div class="fieldDescription">"Alongside media file" will save the trickplay files in the same folder as the media file.</div>
+                            <div class="fieldDescription">"Custom Folder" stores the trickplay files in a folder of your choosing.</div>
+                        </div>
+                        <div class="inputContainer" id="bifSaveLocationCustomFolderContainer" style="display: none">
+                            <input is="emby-input" type="text" id="bifSaveLocationCustomFolder" label="Custom Folder" value="trickplay" />
+                            <div class="fieldDescription">The folder where the plugin should save the trickplay files.</div>
+                            <div class="fieldDescription">This folder will be created in the same directory as the media file.</div>
+                            <div class="fieldDescription">Default is "trickplay".</div>
+                        </div>
+                        <br />
                         <div class="checkboxContainer checkboxContainer-withDescription">
                             <label>
                                 <input is="emby-checkbox" type="checkbox" id="bifSaveLocation" />
@@ -69,11 +88,32 @@
                             page.querySelector("#bifSaveLocation").value = config.LocalMediaFolderSaving;
                             page.querySelector("#processPriority").value = config.ProcessPriority;
                             page.querySelector("#processThreads").value = config.processThreads;
+
+                            // set the custom folder input value
+                            page.querySelector("#bifSaveLocationTemp").value = config.fileSaveLocation;
+                            page.querySelector("#bifSaveLocationCustomFolder").value = config.customFolderName;
+
+                            if (config.fileSaveLocation === "CustomFolder") {
+                                page.querySelector("#bifSaveLocationCustomFolderContainer").style.display = "";
+                            } else {
+                                page.querySelector("#bifSaveLocationCustomFolderContainer").style.display = "none";
+                            }
+
                             Dashboard.hideLoadingMsg();
                         });
                     });
 
                     $(".jellyscrubberrConfigurationForm")
+                        // handle the custom folder input visibility
+                        .on("change", "#bifSaveLocationTemp", function (e) {
+                            var customFolderContainer = this.closest(".jellyscrubberrConfigurationForm").querySelector("#bifSaveLocationCustomFolderContainer");
+                            if (this.value === "CustomFolder") {
+                                customFolderContainer.style.display = "";
+                            } else {
+                                customFolderContainer.style.display = "none";
+                            }
+                        })
+
                         .off("submit.plugin")
                         .on("submit.plugin", function (e) {
                             Dashboard.showLoadingMsg();
@@ -85,6 +125,8 @@
                                 config.ProcessPriority = form.querySelector("#processPriority").value;
                                 config.processThreads = form.querySelector("#processThreads").value;
                                 config.LocalMediaFolderSaving = form.querySelector("#bifSaveLocation").checked;
+                                config.fileSaveLocation = form.querySelector("#bifSaveLocationTemp").value;
+                                config.customFolderName = form.querySelector("#bifSaveLocationCustomFolder").value;
                                 ApiClient.updatePluginConfiguration(pluginId, config).then(Dashboard.processPluginConfigurationUpdateResult);
                             });
                             return false;
