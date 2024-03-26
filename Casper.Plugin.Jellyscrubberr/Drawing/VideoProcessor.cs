@@ -156,9 +156,18 @@ public class VideoProcessor
 
     private static string GetLocalManifestPath(BaseItem item)
     {
-        var folder = Path.Combine(item.ContainingFolderPath, "trickplay");
         var filename = Path.GetFileNameWithoutExtension(item.Path);
         filename += "-" + "manifest.json";
+
+        var folder = item.ContainingFolderPath;
+
+        // same folder means we save the manifest in the same folder as the video
+        // custom folder means we save the manifest in a custom folder in the same folder as the video
+        if (JellyscrubberrPlugin.Instance!.Configuration.fileSaveLocation == FileSaveLocation.CustomFolder)
+        {
+            folder = Path.Combine(item.ContainingFolderPath, JellyscrubberrPlugin.Instance!.Configuration.customFolderName);
+            if (!Directory.Exists(folder)) Directory.CreateDirectory(folder);
+        }
 
         return Path.Combine(folder, filename);
     }
@@ -221,9 +230,18 @@ public class VideoProcessor
 
     private static string GetLocalBifPath(BaseItem item, int width)
     {
-        var folder = Path.Combine(item.ContainingFolderPath, "trickplay");
         var filename = Path.GetFileNameWithoutExtension(item.Path);
         filename += "-" + width.ToString(CultureInfo.InvariantCulture) + ".bif";
+
+        var folder = item.ContainingFolderPath;
+
+        // same folder means we save the bif in the same folder as the video
+        // custom folder means we save the bif in a custom folder in the same folder as the video
+        if (JellyscrubberrPlugin.Instance!.Configuration.fileSaveLocation == FileSaveLocation.CustomFolder)
+        {
+            folder = Path.Combine(item.ContainingFolderPath, JellyscrubberrPlugin.Instance!.Configuration.customFolderName);
+            if (!Directory.Exists(folder)) Directory.CreateDirectory(folder);
+        }
 
         return Path.Combine(folder, filename);
     }
@@ -286,8 +304,11 @@ public class VideoProcessor
                 File.Copy(bifTempPath, path, true);
 
                 // Create .ignore file so trickplay folder is not picked up as a season when TV folder structure is improper.
-                var ignorePath = Path.Combine(Directory.GetParent(path)!.FullName, ".ignore");
-                if (!File.Exists(ignorePath)) await File.Create(ignorePath).DisposeAsync();
+                if (JellyscrubberrPlugin.Instance!.Configuration.fileSaveLocation == FileSaveLocation.CustomFolder)
+                {
+                    var ignorePath = Path.Combine(Directory.GetParent(path)!.FullName, ".ignore");
+                    if (!File.Exists(ignorePath)) await File.Create(ignorePath).DisposeAsync();
+                }
 
                 _logger.LogInformation("Finished creation of trickplay file {0}", path);
             }
