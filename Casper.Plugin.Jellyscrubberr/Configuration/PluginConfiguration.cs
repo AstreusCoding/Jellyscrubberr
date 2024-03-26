@@ -13,8 +13,6 @@ public class PluginConfiguration : BasePluginConfiguration
     /// Whether to save BIFs in the same media folder as their corresponding video.
     /// default = false
     /// </summary>
-    public string bifSaveLocation { get; set; } = "0";
-
     public bool LocalMediaFolderSaving { get; set; } = true;
 
     public FileSaveLocation fileSaveLocation { get; set; } = FileSaveLocation.SameFolder;
