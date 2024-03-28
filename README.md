@@ -12,3 +12,4 @@ Allows smooth video scrobbling in Jellyfin.
 ## Original authors
 
 Project was forked from [nicknsy/jellyscrub](https://github.com/nicknsy/jellyscrub)
+qscale option code taken from [timkrf](https://github.com/timkrf): [pull request](https://github.com/nicknsy/jellyscrub/pull/56)

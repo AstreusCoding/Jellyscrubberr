@@ -32,6 +32,7 @@ public class OldMediaEncoder
     private readonly PluginConfiguration _config;
     private string _ffmpegPath;
     private int _threads;
+    private int _qScaleValue;
     private bool _doHwAcceleration;
     private bool _doHwEncode;
 
@@ -50,6 +51,7 @@ public class OldMediaEncoder
 
         _config = JellyscrubberrPlugin.Instance!.Configuration;
         var configThreads = _config.processThreads;
+        var configQScale = _config.qScaleValue;
 
         var encodingConfig = _configurationManager.GetEncodingOptions();
         _ffmpegPath = _mediaEncoder.EncoderPath;
@@ -61,6 +63,7 @@ public class OldMediaEncoder
         }
 
         _threads = configThreads == -1 ? EncodingHelper.GetNumberOfThreads(null, encodingConfig, null) : configThreads;
+        _qScaleValue = configQScale;
 
         var hwAcceleration = _config.hardwareAcceleration;
         _doHwAcceleration = hwAcceleration != HwAccelerationOptions.None;
@@ -121,13 +124,19 @@ public class OldMediaEncoder
         // Final command arguments
         var args = string.Format(
             CultureInfo.InvariantCulture,
-            "-loglevel error {0} -an -sn {1} -threads {2} -c:v {3} -f {4} \"{5}\"",
+            "-loglevel error {0} -an -sn {1} -threads {2} -c:v {3} -f {4}",
             inputArgs,
             filterParams,
             _threads,
             jobState.OutputVideoCodec,
-            "image2",
-            outputPath);
+            "image2");
+
+        if (_qScaleValue != 0)
+        {
+            args = args + " " + string.Format(CultureInfo.InvariantCulture, "-qscale:v {0}", _qScaleValue);
+        }
+
+        args = args + " " + string.Format(CultureInfo.InvariantCulture, "\"{0}\"", outputPath);
 
         // Start ffmpeg process
         var processStartInfo = new ProcessStartInfo

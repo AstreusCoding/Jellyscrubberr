@@ -40,6 +40,18 @@
                         </div>
                         <br />
                         <div class="inputContainer">
+                            <select is="emby-select" id="qscaleValue" name="Thumbnail Quality" label="Thumbnail Quality">
+                                <option id="opt0" value="0">Disabled</option>
+                                <option id="opt2" value="2">2</option>
+                                <option id="opt3" value="3">3</option>
+                                <option id="opt4" value="4">4</option>
+                                <option id="opt5" value="5">5</option>
+                                <option id="opt6" value="6">6</option>
+                            </select>
+                            <div class="fieldDescription">A higher value means lower quality and a lower value means higher quality.</div>
+                        </div>
+                        <br />
+                        <div class="inputContainer">
                             <select is="emby-select" id="hwAcceleration" name="HW Acceleration" label="HW Acceleration">
                                 <option id="optAccelerationNone" value="None">None</option>
                                 <option id="optAccelerationNoEncode" value="NoEncode">No Encode - decode, filters</option>
@@ -91,6 +103,7 @@
                             page.querySelector("#hwAcceleration").value = config.hardwareAcceleration;
                             page.querySelector("#processPriority").value = config.ProcessPriority;
                             page.querySelector("#processThreads").value = config.processThreads;
+                            page.querySelector("#qscaleValue").value = config.qScaleValue;
 
                             // File management options
                             page.querySelector("#fileSaveLocation").value = config.fileSaveLocation;
@@ -148,6 +161,7 @@
                                 config.LocalMediaFolderSaving = form.querySelector("#LocalMediaFolderSaving").checked;
                                 config.fileSaveLocation = form.querySelector("#fileSaveLocation").value;
                                 config.customFolderName = form.querySelector("#customFolderName").value;
+                                config.qScaleValue = form.querySelector("#qscaleValue").value;
                                 ApiClient.updatePluginConfiguration(pluginId, config).then(Dashboard.processPluginConfigurationUpdateResult);
                             });
                             return false;

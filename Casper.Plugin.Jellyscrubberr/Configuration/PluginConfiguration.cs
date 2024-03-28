@@ -28,4 +28,6 @@ public class PluginConfiguration : BasePluginConfiguration
     public int[] imageWidthResolution { get; set; } = new[] { 320 };
 
     public bool OnDemandGeneration { get; set; } = false;
+
+    public int qScaleValue { get; set; } = 0;
 }
