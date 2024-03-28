@@ -9,6 +9,7 @@ using Casper.Plugin.Jellyscrubberr.Configuration;
 using MediaBrowser.Controller.MediaEncoding;
 using MediaBrowser.Controller.Configuration;
 using Casper.Plugin.Jellyscrubberr.FileManagement;
+using System.Text.Json;
 
 namespace Casper.Plugin.Jellyscrubberr.Drawing;
 
@@ -89,6 +90,18 @@ public class VideoProcessor
         }
     }
 
+    public static async Task<bool> DoesItemHaveManifest(BaseItem item, IFileSystem fileSystem)
+    {
+        var path = ManifestManager.GetExistingManifestPath(item, fileSystem);
+        if (path == null) return false;
+
+        using FileStream openStream = File.OpenRead(path);
+        Manifest? oldManifest = await JsonSerializer.DeserializeAsync<Manifest>(openStream);
+
+        if (oldManifest == null) return false;
+
+        return oldManifest.imageWidthResolution != null;
+    }
     public static bool EnableForItem(BaseItem item, IFileSystem fileSystem, int interval)
     {
         if (item is not Video) return false;

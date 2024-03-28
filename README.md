@@ -7,10 +7,7 @@ Allows smooth video scrobbling in Jellyfin.
 ## Todo
 
 - [ ] Filter for which libraries to generate trickplay files for.
-- [ ] Reading trickplay files.
-- [ ] Configuration menu.
-- [ ] Generation progress of Trickplay files dont take into account previously generated files.
-- [ ] Line 83 in OldMediaEncoder, if the user has not set any hardware acceleration option for jellyfin this throws an error.
+- [ ] Upon generation of trickplay files check previous manifest file and compare the configuration to see if we need to regenerate the trickplay file or not.
 
 ## Original authors
 

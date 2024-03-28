@@ -49,7 +49,7 @@ public class ManifestManager
         await createStream.DisposeAsync();
     }
 
-    private bool HasManifest(BaseItem item, IFileSystem fileSystem)
+    public bool HasManifest(BaseItem item, IFileSystem fileSystem)
     {
         return !string.IsNullOrWhiteSpace(GetExistingManifestPath(item, fileSystem));
     }

@@ -9,6 +9,8 @@ using Casper.Plugin.Jellyscrubberr.Drawing;
 using MediaBrowser.Model.Globalization;
 using MediaBrowser.Controller.MediaEncoding;
 using MediaBrowser.Controller.Configuration;
+using Casper.Plugin.Jellyscrubberr.FileManagement;
+using System.Runtime.InteropServices;
 
 namespace Casper.Plugin.Jellyscrubberr.ScheduledTasks;
 
@@ -90,6 +92,29 @@ public class BIFGenerationTask : IScheduledTask
 
         var numComplete = 0;
 
+        // run VideoProcessor DoesItemHaveManifest method for each item before processing to show an accurate progress bar for the user
+        // clone the list to avoid modifying the list while iterating
+        foreach (var item in items.ToList())
+        {
+            try
+            {
+                // if item has manifest, skip processing for this item by removing it from the list
+                if (await VideoProcessor.DoesItemHaveManifest(item, _fileSystem))
+                {
+                    _logger.LogInformation("Item {0} already has manifest, skipping processing", item.Name);
+                    items.Remove(item);
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                break;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("Error checking for manifest for {0}: {1}", item.Name, ex);
+            }
+        }
+
         foreach (var item in items)
         {
             try
@@ -115,5 +140,7 @@ public class BIFGenerationTask : IScheduledTask
 
             progress.Report(percent);
         }
+
+        progress.Report(100);
     }
 }
