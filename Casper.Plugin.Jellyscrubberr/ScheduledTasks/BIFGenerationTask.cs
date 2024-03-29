@@ -11,6 +11,7 @@ using MediaBrowser.Controller.MediaEncoding;
 using MediaBrowser.Controller.Configuration;
 using Casper.Plugin.Jellyscrubberr.FileManagement;
 using System.Runtime.InteropServices;
+using Casper.Plugin.Jellyscrubberr.Configuration;
 
 namespace Casper.Plugin.Jellyscrubberr.ScheduledTasks;
 
@@ -29,6 +30,7 @@ public class BIFGenerationTask : IScheduledTask
     private readonly IMediaEncoder _mediaEncoder;
     private readonly IServerConfigurationManager _configurationManager;
     private readonly EncodingHelper _encodingHelper;
+    private readonly PluginConfiguration _config;
 
     public BIFGenerationTask(
         ILibraryManager libraryManager,
@@ -52,6 +54,7 @@ public class BIFGenerationTask : IScheduledTask
         _mediaEncoder = mediaEncoder;
         _configurationManager = configurationManager;
         _encodingHelper = encodingHelper;
+        _config = JellyscrubberrPlugin.Instance!.Configuration;
     }
 
     /// <inheritdoc />
@@ -99,7 +102,8 @@ public class BIFGenerationTask : IScheduledTask
             try
             {
                 // if item has manifest, skip processing for this item by removing it from the list
-                if (await VideoProcessor.DoesItemHaveManifest(item, _fileSystem))
+                if (await new VideoProcessor(_loggerFactory, _loggerFactory.CreateLogger<VideoProcessor>(), _mediaEncoder, _configurationManager, _fileSystem, _appPaths, _libraryMonitor, _encodingHelper)
+                    .DoesItemHaveManifest(item, _fileSystem))
                 {
                     _logger.LogInformation("Item {0} already has manifest, skipping processing", item.Name);
                     items.Remove(item);

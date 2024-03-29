@@ -59,6 +59,17 @@ public class VideoProcessor
                  */
                 if (!item.Id.Equals(Guid.Parse(mediaSource.Id))) continue;
 
+                // check if item has a previous Manifest file.
+                Manifest? itemManifest = await GetItemManifest(item, _fileSystem);
+                if (itemManifest != null)
+                {
+                    if (itemManifest.imageWidthResolution == _config.imageWidthResolution)
+                    {
+                        _logger.LogInformation("Skipping file, existing manifest resolution matches configuration resolution");
+                        continue;
+                    }
+                }
+
                 cancellationToken.ThrowIfCancellationRequested();
                 await Run(item, mediaSource, width, _config.imageInterval, cancellationToken).ConfigureAwait(false);
             }
@@ -90,17 +101,23 @@ public class VideoProcessor
         }
     }
 
-    public static async Task<bool> DoesItemHaveManifest(BaseItem item, IFileSystem fileSystem)
+    public static async Task<Manifest?> GetItemManifest(BaseItem item, IFileSystem fileSystem)
     {
         var path = ManifestManager.GetExistingManifestPath(item, fileSystem);
-        if (path == null) return false;
+        if (path == null) return null;
 
         using FileStream openStream = File.OpenRead(path);
-        Manifest? oldManifest = await JsonSerializer.DeserializeAsync<Manifest>(openStream);
+        Manifest? newManifest = await JsonSerializer.DeserializeAsync<Manifest>(openStream);
 
-        if (oldManifest == null) return false;
+        return newManifest;
+    }
 
-        return oldManifest.imageWidthResolution != null;
+    public async Task<bool> DoesItemHaveManifest(BaseItem item, IFileSystem fileSystem)
+    {
+        Manifest? itemManifest = await GetItemManifest(item, fileSystem);
+        if (itemManifest == null) return false;
+
+        return itemManifest.imageWidthResolution == _config.imageWidthResolution;
     }
     public static bool EnableForItem(BaseItem item, IFileSystem fileSystem, int interval)
     {
