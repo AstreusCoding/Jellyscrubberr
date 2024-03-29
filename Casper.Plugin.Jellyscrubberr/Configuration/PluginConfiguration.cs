@@ -30,4 +30,7 @@ public class PluginConfiguration : BasePluginConfiguration
     public bool OnDemandGeneration { get; set; } = false;
 
     public int qScaleValue { get; set; } = 0;
+
+    public bool extractionDuringLibraryScan { get; set; } = true;
+    public MetadataScanBehaviour ScanBehavior { get; set; } = MetadataScanBehaviour.NonBlocking;
 }

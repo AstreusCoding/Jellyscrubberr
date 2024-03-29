@@ -81,6 +81,23 @@
                             <div class="fieldDescription"><strong>0:</strong> The option "0" is the default for ffmpeg, utilizing as many threads/cores as possible.</div>
                         </div>
                         <br />
+                        <div class="inputContainer">
+                            <label>
+                                <input is="emby-checkbox" type="checkbox" id="chkEnableDuringScan" />
+                                <span>Create trickplays when videos are discovered</span>
+                            </label>
+                            <div class="fieldDescription checkboxFieldDescription">This will make trickplay files available sooner but will result in longer library scans. Trickplay files are also created during a scheduled task.</div>
+                            <div class="fieldDescription checkboxFieldDescription">To configure the scheduled task, see <a is="emby-linkbutton" class="button-link" href="scheduledtasks.html">scheduled tasks</a>.</div>
+                        </div>
+                        <div class="inputContainer" id="scanBehaviourContainer" style="display: none">
+                            <select is="emby-select" id="metadataScanBehaviour" name="Scan Behaviour" label="Scan Behaviour">
+                                <option id="optNonBlocking" value="NonBlocking">Non Blocking - queues generation, then returns</option>
+                                <option id="optBlocking" value="Blocking">Blocking - queues generation, blocks scan until complete</option>
+                            </select>
+                            <div class="fieldDescription">The default behavior is non blocking, which will add media to the library before trickplay generation is done.</div>
+                            <div class="fieldDescription">Blocking will ensure trickplay files are generated before media is added to the library, but will make scans significantly longer.</div>
+                        </div>
+                        <br />
                         <div>
                             <button is="emby-button" type="submit" class="raised button-submit block emby-button">
                                 <span>Save</span>
@@ -124,11 +141,28 @@
                                 page.querySelector("#customFolderNameContainer").style.display = "none";
                             }
 
+                            if (config.extractionDuringLibraryScan === true) {
+                                page.querySelector("#chkEnableDuringScan").setAttribute("checked", "checked");
+                                page.querySelector("#scanBehaviourContainer").style.display = "";
+                            } else {
+                                page.querySelector("#chkEnableDuringScan").removeAttribute("checked");
+                                page.querySelector("#scanBehaviourContainer").style.display = "none";
+                            }
+
                             Dashboard.hideLoadingMsg();
                         });
                     });
 
                     $(".jellyscrubberrConfigurationForm")
+                        .on("change", "#chkEnableDuringScan", function (e) {
+                            var scanBehaviourContainer = this.closest(".jellyscrubberrConfigurationForm").querySelector("#scanBehaviourContainer");
+                            if (this.checked) {
+                                scanBehaviourContainer.style.display = "";
+                            } else {
+                                scanBehaviourContainer.style.display = "none";
+                            }
+                        })
+
                         // handle the custom folder input visibility
                         .on("change", "#LocalMediaFolderSaving", function (e) {
                             var fileSaveLocationContainer = this.closest(".jellyscrubberrConfigurationForm").querySelector("#fileSaveLocationContainer");
@@ -162,6 +196,7 @@
                                 config.fileSaveLocation = form.querySelector("#fileSaveLocation").value;
                                 config.customFolderName = form.querySelector("#customFolderName").value;
                                 config.qScaleValue = form.querySelector("#qscaleValue").value;
+                                config.extractionDuringLibraryScan = form.querySelector("#chkEnableDuringScan").value;
                                 ApiClient.updatePluginConfiguration(pluginId, config).then(Dashboard.processPluginConfigurationUpdateResult);
                             });
                             return false;
