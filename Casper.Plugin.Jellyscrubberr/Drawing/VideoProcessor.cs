@@ -19,7 +19,7 @@ public class VideoProcessor
     private readonly IFileSystem _fileSystem;
     private readonly PluginConfiguration _config;
     private readonly BifManager _bifManager;
-    private readonly ManifestManager _manifestManager;
+    private static ManifestManager _manifestManager = null!;
 
     public VideoProcessor(
         ILoggerFactory loggerFactory,
@@ -34,8 +34,8 @@ public class VideoProcessor
         _logger = logger;
         _fileSystem = fileSystem;
         _config = JellyscrubberrPlugin.Instance!.Configuration;
-        _bifManager = new BifManager(loggerFactory, logger, mediaEncoder, configurationManager, fileSystem, appPaths, libraryMonitor, encodingHelper);
-        _manifestManager = new ManifestManager(loggerFactory, logger, fileSystem);
+        _bifManager = new BifManager(loggerFactory, loggerFactory.CreateLogger<BifManager>(), mediaEncoder, configurationManager, fileSystem, appPaths, libraryMonitor, encodingHelper);
+        _manifestManager = new ManifestManager(loggerFactory, loggerFactory.CreateLogger<ManifestManager>(), fileSystem, libraryMonitor);
     }
 
     /*
@@ -43,6 +43,8 @@ public class VideoProcessor
      */
     public async Task Run(BaseItem item, CancellationToken cancellationToken)
     {
+        _logger.LogInformation("Processing item {0}", item.Name);
+
         if (!EnableForItem(item, _fileSystem, _config.imageInterval)) return;
 
         var mediaSources = ((IHasMediaSources)item).GetMediaSources(false)
@@ -55,52 +57,54 @@ public class VideoProcessor
                 * and as sub-media sources under a single head item. Because of this, it is worth a simple check
                 * to make sure we are not writing a "sub-items" trickplay data to the metadata folder of the "main" item.
                 */
-            if (!item.Id.Equals(Guid.Parse(mediaSource.Id))) continue;
-
-            // check if item has a previous Manifest file.
-            Manifest? itemManifest = await GetItemManifest(item, _fileSystem);
-            if (itemManifest != null)
+            if (!item.Id.Equals(Guid.Parse(mediaSource.Id)))
             {
-                if (itemManifest.imageWidthResolution == _config.imageWidthResolution)
-                {
-                    _logger.LogInformation("Skipping file, existing manifest resolution matches configuration resolution");
-                    continue;
-                }
+                _logger.LogInformation("Skipping file, item is a sub-item");
+                continue;
+            };
+
+            // check if item has a previous Manifest file and if it matches the current configuration
+            bool doesManifestMatch = _manifestManager.ManifestMatches(item);
+            if (doesManifestMatch)
+            {
+                _logger.LogInformation("Manifest matches current configuration, skipping BIF generation");
+                continue;
             }
 
             cancellationToken.ThrowIfCancellationRequested();
-            await Run(item, mediaSource, _config.imageWidthResolution, _config.imageInterval, cancellationToken).ConfigureAwait(false);
+            await Run(item, mediaSource, cancellationToken).ConfigureAwait(false);
         }
     }
 
-    private async Task Run(BaseItem item, MediaSourceInfo mediaSource, int width, int interval, CancellationToken cancellationToken)
+    private async Task Run(BaseItem item, MediaSourceInfo mediaSource, CancellationToken cancellationToken)
     {
-        if (!_bifManager.HasBif(item, _fileSystem, width))
+        // if bif file already exists delete it
+        if (_bifManager.HasBif(item))
         {
-            await _bifManager.BifWriterSemaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
+            _logger.LogInformation("BIF file already exists, deleting");
+            _bifManager.DeleteBif(item);
+        }
 
-            try
-            {
-                if (!_bifManager.HasBif(item, _fileSystem, width))
-                {
-                    await _bifManager.CreateBif(item, width, interval, mediaSource, cancellationToken).ConfigureAwait(false);
-                    await _manifestManager.CreateManifest(item, width).ConfigureAwait(false);
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error while creating BIF file");
-            }
-            finally
-            {
-                _bifManager.BifWriterSemaphore.Release();
-            }
+        await _bifManager.BifWriterSemaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
+
+        try
+        {
+            await _bifManager.CreateBif(item, mediaSource, cancellationToken).ConfigureAwait(false);
+            await _manifestManager.CreateManifest(item).ConfigureAwait(false);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error while creating BIF file");
+        }
+        finally
+        {
+            _bifManager.BifWriterSemaphore.Release();
         }
     }
 
     public static async Task<Manifest?> GetItemManifest(BaseItem item, IFileSystem fileSystem)
     {
-        var path = ManifestManager.GetExistingManifestPath(item, fileSystem);
+        var path = _manifestManager.GetExistingManifestPath(item);
         if (path == null) return null;
 
         using FileStream openStream = File.OpenRead(path);

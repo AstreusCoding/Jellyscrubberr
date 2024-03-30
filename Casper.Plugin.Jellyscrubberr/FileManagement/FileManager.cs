@@ -15,7 +15,7 @@ namespace Casper.Plugin.Jellyscrubberr.FileManagement;
 
 public class FileManager
 {
-    private readonly ILogger<VideoProcessor> _logger;
+    private static ILogger<VideoProcessor> _logger = null!;
     private readonly IFileSystem _fileSystem;
     private readonly IApplicationPaths _appPaths;
     private readonly ILibraryMonitor _libraryMonitor;
@@ -39,7 +39,7 @@ public class FileManager
         _oldEncoder = new OldMediaEncoder(loggerFactory.CreateLogger<OldMediaEncoder>(), mediaEncoder, configurationManager, fileSystem, encodingHelper);
     }
 
-    public bool DeleteDirectory(string directoryPath)
+    public static bool DeleteDirectory(string directoryPath)
     {
         try
         {
@@ -65,7 +65,7 @@ public class FileManager
         return !Directory.Exists(directoryPath);
     }
 
-    public bool CreateDirectory(string directoryPath)
+    public static bool CreateDirectory(string directoryPath)
     {
         try
         {
@@ -95,7 +95,7 @@ public class FileManager
         return Directory.Exists(directoryPath);
     }
 
-    public byte[] GetBytes(int value)
+    public static byte[] GetBytes(int value)
     {
         byte[] bytes = BitConverter.GetBytes(value);
         if (!BitConverter.IsLittleEndian)
@@ -103,7 +103,7 @@ public class FileManager
         return bytes;
     }
 
-    public byte[] GetBytes(long value)
+    public static byte[] GetBytes(long value)
     {
         var intVal = Convert.ToInt32(value);
         return GetBytes(intVal);

@@ -37,6 +37,8 @@ public class TrickplayController : ControllerBase
     private readonly IServerConfigurationManager _configurationManager;
     private readonly EncodingHelper _encodingHelper;
     private readonly PluginConfiguration _config;
+    private static ManifestManager _manifestManager = null!;
+    private static BifManager _bifManager = null!;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="TrickplayController"/> class.
@@ -65,6 +67,8 @@ public class TrickplayController : ControllerBase
         _configurationManager = configurationManager;
         _encodingHelper = encodingHelper;
         _config = JellyscrubberrPlugin.Instance!.Configuration;
+        _manifestManager = new ManifestManager(loggerFactory, loggerFactory.CreateLogger<ManifestManager>(), fileSystem, libraryMonitor);
+        _bifManager = new BifManager(loggerFactory, loggerFactory.CreateLogger<BifManager>(), mediaEncoder, configurationManager, fileSystem, appPaths, libraryMonitor, encodingHelper);
     }
 
     /// <summary>
@@ -108,7 +112,7 @@ public class TrickplayController : ControllerBase
 
         if (item != null)
         {
-            var path = ManifestManager.GetExistingManifestPath(item, _fileSystem);
+            var path = _manifestManager.GetExistingManifestPath(item);
             if (path != null)
             {
                 return PhysicalFile(path, MediaTypeNames.Application.Json);
@@ -122,30 +126,29 @@ public class TrickplayController : ControllerBase
     /// Gets specific BIF file for a video.
     /// </summary>
     /// <param name="itemId">Item id.</param>
-    /// <param name="width">With resolution of BIF file.</param>
     /// <response code="200">BIF file successfully found and returned.</response>
     /// <response code="404">BIF file not found.</response>
     /// <response code="503">If on-demand generation is enabled, this indicates the server hasn't completed generation.</response>
     /// <returns>Associated BIF file, or a <see cref="NotFoundResult"/>.</returns>
-    [HttpGet("{itemId}/{width}/GetBIF")]
-    [HttpGet("{itemId}/{width}/GetBIF.bif")]
+    [HttpGet("{itemId}/GetBIF")]
+    [HttpGet("{itemId}/GetBIF.bif")]
     [Authorize(Policy = "DefaultAuthorization")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status503ServiceUnavailable)]
     [Produces(MediaTypeNames.Application.Octet)]
-    public ActionResult GetBIF([FromRoute, Required] Guid itemId, [FromRoute, Required] int width)
+    public ActionResult GetBIF([FromRoute, Required] Guid itemId)
     {
         var item = _libraryManager.GetItemById(itemId);
 
         if (item != null)
         {
-            var path = BifManager.GetExistingBifPath(item, _fileSystem, width);
+            var path = _bifManager.GetExistingBifPath(item);
             if (path != null)
             {
                 return PhysicalFile(path, MediaTypeNames.Application.Octet);
             }
-            else if (_config.OnDemandGeneration && _config.imageWidthResolution == width)
+            else if (_config.OnDemandGeneration)
             {
                 _ = new VideoProcessor(_loggerFactory, _loggerFactory.CreateLogger<VideoProcessor>(), _mediaEncoder, _configurationManager, _fileSystem, _appPaths, _libraryMonitor, _encodingHelper)
                     .Run(item, CancellationToken.None).ConfigureAwait(false);

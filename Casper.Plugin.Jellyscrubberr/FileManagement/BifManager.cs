@@ -13,15 +13,15 @@ using Casper.Plugin.Jellyscrubberr.Drawing;
 namespace Casper.Plugin.Jellyscrubberr.FileManagement;
 public class BifManager
 {
-    private readonly ILogger<VideoProcessor> _logger;
+    private readonly ILogger<BifManager> _logger;
     private readonly IFileSystem _fileSystem;
     private readonly IApplicationPaths _appPaths;
     private readonly ILibraryMonitor _libraryMonitor;
     private readonly OldMediaEncoder _oldEncoder;
-    private readonly FileManager _fileManager;
+    private readonly PluginConfiguration _config;
     public BifManager(
         ILoggerFactory loggerFactory,
-        ILogger<VideoProcessor> logger,
+        ILogger<BifManager> logger,
         IMediaEncoder mediaEncoder,
         IServerConfigurationManager configurationManager,
         IFileSystem fileSystem,
@@ -34,25 +34,25 @@ public class BifManager
         _appPaths = appPaths;
         _libraryMonitor = libraryMonitor;
         _oldEncoder = new OldMediaEncoder(loggerFactory.CreateLogger<OldMediaEncoder>(), mediaEncoder, configurationManager, fileSystem, encodingHelper);
-        _fileManager = new FileManager(loggerFactory, logger, mediaEncoder, configurationManager, fileSystem, appPaths, libraryMonitor, encodingHelper);
+        _config = JellyscrubberrPlugin.Instance!.Configuration;
     }
     public readonly SemaphoreSlim BifWriterSemaphore = new SemaphoreSlim(1, 1);
 
-    public async Task CreateBif(Stream stream, List<FileSystemMetadata> images, int interval)
+    public async Task CreateBif(Stream stream, List<FileSystemMetadata> images)
     {
         var magicNumber = new byte[] { 0x89, 0x42, 0x49, 0x46, 0x0d, 0x0a, 0x1a, 0x0a };
         await stream.WriteAsync(magicNumber, 0, magicNumber.Length);
 
         // Version
-        var bytes = _fileManager.GetBytes(0);
+        var bytes = FileManager.GetBytes(0);
         await stream.WriteAsync(bytes, 0, bytes.Length);
 
         // Image count
-        bytes = _fileManager.GetBytes(images.Count);
+        bytes = FileManager.GetBytes(images.Count);
         await stream.WriteAsync(bytes, 0, bytes.Length);
 
         // Interval in ms
-        bytes = _fileManager.GetBytes(interval);
+        bytes = FileManager.GetBytes(_config.imageInterval);
         await stream.WriteAsync(bytes, 0, bytes.Length);
 
         // Reserved
@@ -68,10 +68,10 @@ public class BifManager
 
         foreach (var img in images)
         {
-            bytes = _fileManager.GetBytes(index);
+            bytes = FileManager.GetBytes(index);
             await stream.WriteAsync(bytes, 0, bytes.Length);
 
-            bytes = _fileManager.GetBytes(imageOffset);
+            bytes = FileManager.GetBytes(imageOffset);
             await stream.WriteAsync(bytes, 0, bytes.Length);
 
             imageOffset += img.Length;
@@ -82,7 +82,7 @@ public class BifManager
         bytes = new byte[] { 0xff, 0xff, 0xff, 0xff };
         await stream.WriteAsync(bytes, 0, bytes.Length);
 
-        bytes = _fileManager.GetBytes(imageOffset);
+        bytes = FileManager.GetBytes(imageOffset);
         await stream.WriteAsync(bytes, 0, bytes.Length);
 
         // Write the images
@@ -95,16 +95,16 @@ public class BifManager
         }
     }
 
-    public Task CreateBif(BaseItem item, int width, int interval, MediaSourceInfo mediaSource, CancellationToken cancellationToken)
+    public Task CreateBif(BaseItem item, MediaSourceInfo mediaSource, CancellationToken cancellationToken)
     {
-        var path = GetNewBifPath(item, width);
+        var path = GetNewBifPath(item);
 
-        return CreateBif(path, width, interval, item, mediaSource, cancellationToken);
+        return CreateBif(path, item, mediaSource, cancellationToken);
     }
 
-    private async Task CreateBif(string path, int width, int interval, BaseItem item, MediaSourceInfo mediaSource, CancellationToken cancellationToken)
+    private async Task CreateBif(string path, BaseItem item, MediaSourceInfo mediaSource, CancellationToken cancellationToken)
     {
-        _logger.LogInformation("Creating trickplay files at {0} width, for {1} [ID: {2}]", width, mediaSource.Path, item.Id);
+        _logger.LogInformation("Creating trickplay files at {0} width, for {1} [ID: {2}]", _config.imageWidthResolution, mediaSource.Path, item.Id);
 
         var protocol = mediaSource.Protocol;
 
@@ -118,7 +118,7 @@ public class BifManager
             var inputPath = mediaSource.Path;
 
             await _oldEncoder.ExtractVideoImagesOnInterval(inputPath, mediaSource.Container, videoStream, mediaSource, mediaSource.Video3DFormat,
-                    TimeSpan.FromMilliseconds(interval), tempDirectory, "img_", width, cancellationToken)
+                    TimeSpan.FromMilliseconds(_config.imageInterval), tempDirectory, "img_", _config.imageWidthResolution, cancellationToken)
                     .ConfigureAwait(false);
 
             var images = _fileSystem.GetFiles(tempDirectory, new string[] { ".jpg" }, false, false)
@@ -132,7 +132,7 @@ public class BifManager
 
             using (var fs = new FileStream(bifTempPath, FileMode.Create, FileAccess.Write, FileShare.Read))
             {
-                await CreateBif(fs, images, interval).ConfigureAwait(false);
+                await CreateBif(fs, images).ConfigureAwait(false);
             }
 
             _libraryMonitor.ReportFileSystemChangeBeginning(path);
@@ -155,31 +155,53 @@ public class BifManager
         }
         finally
         {
-            _fileManager.DeleteDirectory(tempDirectory);
+            FileManager.DeleteDirectory(tempDirectory);
         }
     }
 
-    public bool HasBif(BaseItem item, IFileSystem fileSystem, int width)
+    public bool DeleteBif(BaseItem item)
     {
-        return !string.IsNullOrWhiteSpace(GetExistingBifPath(item, fileSystem, width));
+        var path = GetExistingBifPath(item);
+
+        if (string.IsNullOrWhiteSpace(path)) return false;
+
+        _logger.LogInformation("Deleting BIF file at {0}", path);
+
+        _libraryMonitor.ReportFileSystemChangeBeginning(path);
+
+        try
+        {
+            _fileSystem.DeleteFile(path);
+        }
+        finally
+        {
+            _libraryMonitor.ReportFileSystemChangeComplete(path, true);
+        }
+
+        return true;
     }
 
-    public static string? GetExistingBifPath(BaseItem item, IFileSystem fileSystem, int width)
+    public bool HasBif(BaseItem item)
     {
-        var path = JellyscrubberrPlugin.Instance!.Configuration.LocalMediaFolderSaving ? GetLocalBifPath(item, width) : GetInternalBifPath(item, width);
-
-        return fileSystem.FileExists(path) ? path : null;
+        return !string.IsNullOrWhiteSpace(GetExistingBifPath(item));
     }
 
-    private static string GetNewBifPath(BaseItem item, int width)
+    public string? GetExistingBifPath(BaseItem item)
     {
-        return JellyscrubberrPlugin.Instance!.Configuration.LocalMediaFolderSaving ? GetLocalBifPath(item, width) : GetInternalBifPath(item, width);
+        var path = JellyscrubberrPlugin.Instance!.Configuration.LocalMediaFolderSaving ? GetLocalBifPath(item) : GetInternalBifPath(item);
+
+        return _fileSystem.FileExists(path) ? path : null;
     }
 
-    private static string GetLocalBifPath(BaseItem item, int width)
+    private static string GetNewBifPath(BaseItem item)
+    {
+        return JellyscrubberrPlugin.Instance!.Configuration.LocalMediaFolderSaving ? GetLocalBifPath(item) : GetInternalBifPath(item);
+    }
+
+    private static string GetLocalBifPath(BaseItem item)
     {
         var filename = Path.GetFileNameWithoutExtension(item.Path);
-        filename += "-" + width.ToString(CultureInfo.InvariantCulture) + ".bif";
+        filename += ".bif";
 
         var folder = item.ContainingFolderPath;
 
@@ -192,8 +214,8 @@ public class BifManager
         return Path.Combine(folder, filename);
     }
 
-    private static string GetInternalBifPath(BaseItem item, int width)
+    private static string GetInternalBifPath(BaseItem item)
     {
-        return Path.Combine(item.GetInternalMetadataPath(), "trickplay", width.ToString(CultureInfo.InvariantCulture) + ".bif");
+        return Path.Combine(item.GetInternalMetadataPath(), "trickplay", ".bif");
     }
 }
