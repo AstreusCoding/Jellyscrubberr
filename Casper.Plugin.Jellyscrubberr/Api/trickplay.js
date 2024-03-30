@@ -9,7 +9,7 @@ if (document.currentScript) {
 
 const JELLYSCRUBBERR_GUID = '6b961c92-5678-45d1-a7ac-dd5003f03460';
 const MANIFEST_ENDPOINT = basePath + 'Trickplay/{itemId}/GetManifest';
-const BIF_ENDPOINT = basePath + 'Trickplay/{itemId}/{width}/GetBIF';
+const BIF_ENDPOINT = basePath + 'Trickplay/{itemId}/GetBIF';
 const RETRY_INTERVAL = 60000;  // ms (1 minute)
 
 let mediaSourceId = null;
@@ -461,40 +461,19 @@ function mainScriptExecution() {
 
     // Get trickplay BIF file
     if (!trickplayData && trickplayManifest) {
-        // Determine which width to use
-        // Prefer highest resolution @ less than 20% of total screen resolution width
-        let resolutions = trickplayManifest.imageWidthResolution;
+        info(`Requesting BIF file for media source ${mediaSourceId}`);
 
-        if (resolutions && resolutions.length > 0)
-        {
-            resolutions.sort();
-            let screenWidth = window.screen.width * window.devicePixelRatio;
-            let width = resolutions[0];
+        let bifUrl = BIF_ENDPOINT.replace('{itemId}', mediaSourceId);
+        let bifRequest = new XMLHttpRequest();
+        bifRequest.responseType = 'arraybuffer';
+        bifRequest.addEventListener('load', bifLoad);
 
-            // Prefer bigger trickplay images granted they are less than or equal to 20% of total screen width
-            for (let i = 1; i < resolutions.length; i++)
-            {
-                let biggerWidth = resolutions[i];
-                if (biggerWidth <= (screenWidth * .2)) {
-                  width = biggerWidth;
-                }
-            }
-            info(`Requesting BIF file with width ${width}`);
+        bifRequest.open('GET', bifUrl);
+        bifRequest.setRequestHeader(EMBY_AUTH_HEADER, embyAuthValue);
 
-            let bifUrl = BIF_ENDPOINT.replace('{itemId}', mediaSourceId).replace('{width}', width);
-            let bifRequest = new XMLHttpRequest();
-            bifRequest.responseType = 'arraybuffer';
-            bifRequest.addEventListener('load', bifLoad);
-
-            bifRequest.open('GET', bifUrl);
-            bifRequest.setRequestHeader(EMBY_AUTH_HEADER, embyAuthValue);
-
-            debug(`Requesting BIF @ ${bifUrl}`);
-            bifRequest.send();
-            return;
-        } else {
-            error(`Have manifest file with no listed resolutions: ${trickplayManifest}`);
-        }
+        debug(`Requesting BIF @ ${bifUrl}`);
+        bifRequest.send();
+        return;
     }
 
     // Set the bubble function to our custom trickplay one
