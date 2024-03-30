@@ -14,7 +14,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Build Plugin
-        uses: oddstr13/jellyfin-plugin-repository-manager
+        uses: oddstr13/jellyfin-plugin-repository-manager@v1.1.0
         id: jprm
         with:
           verbosity: "debug"
