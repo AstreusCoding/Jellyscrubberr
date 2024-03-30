@@ -21,4 +21,4 @@ artifacts:
 
 build_type: "dotnet"
 dotnet_configuration: "Release"
-dotnet_framework: "netstandard6.0"
+dotnet_framework: "netstandard6.0.420"
