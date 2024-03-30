@@ -143,8 +143,12 @@ public class BifManager
                 File.Copy(bifTempPath, path, true);
 
                 // Create .ignore file so trickplay folder is not picked up as a season when TV folder structure is improper.
-                var ignorePath = Path.Combine(Directory.GetParent(path)!.FullName, ".ignore");
-                if (!File.Exists(ignorePath)) await File.Create(ignorePath).DisposeAsync();
+                // check if the config is set to use a custom folder and if so, create the ignore file in the parent directory, otherwise this would ignore the episodes.
+                if (_config.fileSaveLocation == FileSaveLocation.CustomFolder)
+                {
+                    var ignorePath = Path.Combine(Directory.GetParent(path)!.FullName, ".ignore");
+                    if (!File.Exists(ignorePath)) await File.Create(ignorePath).DisposeAsync();
+                }
 
                 _logger.LogInformation("Finished creation of trickplay file {0}", path);
             }
