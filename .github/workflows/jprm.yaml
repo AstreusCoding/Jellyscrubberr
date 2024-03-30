@@ -13,27 +13,15 @@ jobs:
   test-action:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Repo
-        uses: actions/checkout@v4
-
-      - name: Setup .Net
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: "6.0.x"
-
-      - name: Checkout Jellyfin Template Plugin
-        uses: actions/checkout@v4
-        with:
-          repository: "jellyfin/jellyfin-plugin-template"
-          path: "plugin-template"
+      - name: jprm-build
+        uses: oddstr13/jellyfin-plugin-repository-manager
 
       - name: Build Template Plugin with Action
         uses: ./
         id: jprm
         with:
           verbosity: "debug"
-          path: "plugin-template"
-          output: "plugin-template/artifacts"
+          output: "/artifacts"
 
       - name: List Output Artifact
         run: "ls -la ${{ steps.jprm.outputs.artifact }}"
