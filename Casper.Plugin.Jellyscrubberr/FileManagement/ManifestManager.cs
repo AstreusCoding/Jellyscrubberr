@@ -27,7 +27,7 @@ public class ManifestManager
         Manifest newManifest = new Manifest()
         {
             Version = JellyscrubberrPlugin.Instance!.Version.ToString(),
-            imageWidthResolution = new[] { width }
+            imageWidthResolution = width
         };
 
         // If a Manifest object already exists, combine resolutions
@@ -39,7 +39,7 @@ public class ManifestManager
 
             if (oldManifest != null && oldManifest.imageWidthResolution != null)
             {
-                newManifest.imageWidthResolution = newManifest.imageWidthResolution.Concat(oldManifest.imageWidthResolution).ToArray();
+                //newManifest.imageWidthResolution = _
             }
         }
 

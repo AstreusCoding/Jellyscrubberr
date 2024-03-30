@@ -145,7 +145,7 @@ public class TrickplayController : ControllerBase
             {
                 return PhysicalFile(path, MediaTypeNames.Application.Octet);
             }
-            else if (_config.OnDemandGeneration && _config.imageWidthResolution.Contains(width))
+            else if (_config.OnDemandGeneration && _config.imageWidthResolution == width)
             {
                 _ = new VideoProcessor(_loggerFactory, _loggerFactory.CreateLogger<VideoProcessor>(), _mediaEncoder, _configurationManager, _fileSystem, _appPaths, _libraryMonitor, _encodingHelper)
                     .Run(item, CancellationToken.None).ConfigureAwait(false);

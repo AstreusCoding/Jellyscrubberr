@@ -50,29 +50,26 @@ public class VideoProcessor
 
         foreach (var mediaSource in mediaSources)
         {
-            foreach (var width in _config.imageWidthResolution)
+            /*
+                * It seems that in Jellyfin multiple files in the same folder exist both as separate items
+                * and as sub-media sources under a single head item. Because of this, it is worth a simple check
+                * to make sure we are not writing a "sub-items" trickplay data to the metadata folder of the "main" item.
+                */
+            if (!item.Id.Equals(Guid.Parse(mediaSource.Id))) continue;
+
+            // check if item has a previous Manifest file.
+            Manifest? itemManifest = await GetItemManifest(item, _fileSystem);
+            if (itemManifest != null)
             {
-                /*
-                 * It seems that in Jellyfin multiple files in the same folder exist both as separate items
-                 * and as sub-media sources under a single head item. Because of this, it is worth a simple check
-                 * to make sure we are not writing a "sub-items" trickplay data to the metadata folder of the "main" item.
-                 */
-                if (!item.Id.Equals(Guid.Parse(mediaSource.Id))) continue;
-
-                // check if item has a previous Manifest file.
-                Manifest? itemManifest = await GetItemManifest(item, _fileSystem);
-                if (itemManifest != null)
+                if (itemManifest.imageWidthResolution == _config.imageWidthResolution)
                 {
-                    if (itemManifest.imageWidthResolution == _config.imageWidthResolution)
-                    {
-                        _logger.LogInformation("Skipping file, existing manifest resolution matches configuration resolution");
-                        continue;
-                    }
+                    _logger.LogInformation("Skipping file, existing manifest resolution matches configuration resolution");
+                    continue;
                 }
-
-                cancellationToken.ThrowIfCancellationRequested();
-                await Run(item, mediaSource, width, _config.imageInterval, cancellationToken).ConfigureAwait(false);
             }
+
+            cancellationToken.ThrowIfCancellationRequested();
+            await Run(item, mediaSource, _config.imageWidthResolution, _config.imageInterval, cancellationToken).ConfigureAwait(false);
         }
     }
 

@@ -51,7 +51,7 @@ public class OldMediaEncoder
 
         _config = JellyscrubberrPlugin.Instance!.Configuration;
         var configThreads = _config.processThreads;
-        var configQScale = _config.qScaleValue;
+        var configQScale = _config.qScaleInput;
 
         var encodingConfig = _configurationManager.GetEncodingOptions();
         _ffmpegPath = _mediaEncoder.EncoderPath;
@@ -235,8 +235,8 @@ public class OldMediaEncoder
         process.Process.Start();
         try
         {
-            _logger.LogInformation("Setting generation process priority to {0}", _config.ProcessPriority);
-            process.Process.PriorityClass = _config.ProcessPriority;
+            _logger.LogInformation("Setting generation process priority to {0}", _config.processPriority);
+            process.Process.PriorityClass = _config.processPriority;
         }
         catch (Exception e)
         {

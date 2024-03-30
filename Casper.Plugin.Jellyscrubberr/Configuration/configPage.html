@@ -1,247 +1,117 @@
-<!DOCTYPE html>
-<html>
-    <head>
-        <title>Jellyscrubberr</title>
-    </head>
-    <body>
-        <div data-role="page" class="page type-interior pluginConfigurationPage jellyscrubberrConfigurationPage" data-require="emby-button,emby-select">
-            <div data-role="content">
-                <div class="content-primary">
-                    <form class="jellyscrubberrConfigurationForm">
+<body>
+    <div data-role="page" class="page type-interior pluginConfigurationPage jellyscrubberrConfigurationPage" data-require="emby-button,emby-select" data-controller="__plugin/configPage.js">
+        <div data-role="content">
+            <div class="content-primary">
+                <form class="ConfigurationForm">
+                    <br />
+                    <div class="inputContainer">
+                        <h2>Jellyscrubberr Configuration</h2>
+                    </div>
+                    <br />
+                    <div class="inputContainer">
+                        <input is="emby-input" type="number" id="imageIntervalValue" pattern="[0-9]*" min="0" required label="Image Interval" />
+                        <div class="fieldDescription">Interval between each image</div>
+                        <div class="fieldDescription"><strong>Note:</strong> This value cannot be below 0. A value of 0 defaults to a 1000ms interval.</div>
+                    </div>
+                    <br />
+                    <div class="inputContainer">
+                        <input is="emby-input" id="imageWidthResolutionValue" type="number" min="1" required label="Width Resolutions" />
+                        <div class="fieldDescription">Image width in pixels.</div>
+                        <div class="fieldDescription">All images <strong>try</strong> to generate proportionally to the source, so a width of 320 on a 16:9 video ends up <strong>around</strong> 320x180.</div>
+                    </div>
+                    <br />
+                    <div class="checkboxContainer checkboxContainer-withDescription">
+                        <label>
+                            <input is="emby-checkbox" type="checkbox" id="LocalMediaFolderSavingValue" />
+                            <span>Save trickplay files within media folders</span>
+                        </label>
+                        <div class="fieldDescription checkboxFieldDescription">This will enable easier storage management of the trickplay files. Trickplay files will be saved with a .bif extension.</div>
+                    </div>
+                    <br />
+                    <div class="inputContainer" id="fileSaveLocationContainer" style="display: none">
+                        <select is="emby-select" id="fileSaveLocationValue" name="BIF Save Location" label="BIF Save Location">
+                            <option id="optSaveLocationMediaFolder" value="SameFolder">Alongside media file</option>
+                            <option id="optSaveLocationPluginFolder" value="CustomFolder">Custom Folder</option>
+                        </select>
+                        <div class="fieldDescription">Choose where the plugin should save the trickplay files.</div>
+                        <div class="fieldDescription">"Alongside media file" will save the trickplay files in the same folder as the media file.</div>
+                        <div class="fieldDescription">"Custom Folder" stores the trickplay files in a folder of your choosing.</div>
                         <br />
-                        <div class="inputContainer">
-                            <h2>Jellyscrubberr Configuration</h2>
-                        </div>
-                        <br />
-                        <div class="inputContainer">
-                            <input is="emby-input" type="number" id="intervalInput" pattern="[0-9]*" min="0" required label="Image Interval" />
-                            <div class="fieldDescription">Interval between each image</div>
-                            <div class="fieldDescription"><strong>Note:</strong> This value cannot be below 0. A value of 0 defaults to a 1000ms interval.</div>
-                        </div>
-                        <br />
-                        <div class="inputContainer">
-                            <input is="emby-input" id="resolutionInput" pattern="[0-9,]*" required label="Width Resolutions" />
-                            <div class="fieldDescription">Comma separated list of the width (px) that trickplay images will be generated at.</div>
-                            <div class="fieldDescription">All images <strong>try</strong> to generate proportionally to the source, so a width of 320 on a 16:9 video ends up <strong>around</strong> 320x180.</div>
-                            <div class="fieldDescription"><strong>Note:</strong> Do not include spaces after commas.</div>
-                        </div>
-                        <br />
-                        <div class="checkboxContainer checkboxContainer-withDescription">
-                            <label>
-                                <input is="emby-checkbox" type="checkbox" id="LocalMediaFolderSaving" />
-                                <span>Save trickplay files within media folders</span>
-                            </label>
-                            <div class="fieldDescription checkboxFieldDescription">This will enable easier storage management of the trickplay files. Trickplay files will be saved with a .bif extension.</div>
-                        </div>
-                        <br />
-                        <div class="inputContainer" id="fileSaveLocationContainer" style="display: none">
-                            <select is="emby-select" id="fileSaveLocation" name="BIF Save Location" label="BIF Save Location">
-                                <option id="optSaveLocationMediaFolder" value="SameFolder">Alongside media file</option>
-                                <option id="optSaveLocationPluginFolder" value="CustomFolder">Custom Folder</option>
-                            </select>
-                            <div class="fieldDescription">Choose where the plugin should save the trickplay files.</div>
-                            <div class="fieldDescription">"Alongside media file" will save the trickplay files in the same folder as the media file.</div>
-                            <div class="fieldDescription">"Custom Folder" stores the trickplay files in a folder of your choosing.</div>
-                            <br />
-                            <div class="inputContainer" id="customFolderNameContainer" style="display: none">
-                                <input is="emby-input" type="text" id="customFolderName" label="Custom folder name" value="trickplay" />
-                                <div class="fieldDescription">The folder where the plugin should save the trickplay files.</div>
-                                <div class="fieldDescription">This folder will be created in the same directory as the media file.</div>
-                                <div class="fieldDescription">Default is "trickplay".</div>
-                            </div>
-                            <br />
+                        <div class="inputContainer" id="customFolderNameContainer" style="display: none">
+                            <input is="emby-input" type="text" id="customFolderNameValue" label="Custom folder name" value="trickplay" />
+                            <div class="fieldDescription">The folder where the plugin should save the trickplay files.</div>
+                            <div class="fieldDescription">This folder will be created in the same directory as the media file.</div>
+                            <div class="fieldDescription">Default is "trickplay".</div>
                         </div>
                         <br />
-                        <div class="inputContainer">
-                            <select is="emby-select" id="qscaleValue" name="Thumbnail Quality" label="Thumbnail Quality">
-                                <option id="opt0" value="0">Disabled</option>
-                                <option id="opt2" value="2">2</option>
-                                <option id="opt3" value="3">3</option>
-                                <option id="opt4" value="4">4</option>
-                                <option id="opt5" value="5">5</option>
-                                <option id="opt6" value="6">6</option>
-                            </select>
-                            <div class="fieldDescription">A higher value means lower quality and a lower value means higher quality.</div>
-                        </div>
-                        <br />
-                        <div class="inputContainer">
-                            <select is="emby-select" id="hwAcceleration" name="HW Acceleration" label="HW Acceleration">
-                                <option id="optAccelerationNone" value="None">None</option>
-                                <option id="optAccelerationNoEncode" value="NoEncode">No Encode - decode, filters</option>
-                                <option id="optAccelerationFull" value="Full">Full - decode, filters, encode</option>
-                            </select>
-                            <div class="fieldDescription">Uses the same options as set in "Playback" to HW accelerate BIF generation. Counts towards NVENC stream limit.</div>
-                            <div class="fieldDescription">"Full" will default to SW encode on NVENC and AMF. On VAAPI and QSV devices without mjpeg encode support, set to "No Encode".</div>
-                            <div class="fieldDescription"><strong>Do not use "Full" if using an AMD device through VAAPI.</strong></div>
-                        </div>
-                        <br />
-                        <div class="inputContainer">
-                            <select is="emby-select" id="processPriority" name="Process Priority" label="Process Priority">
-                                <!--<option id="optPriorityRealtime" value="Realtime">Realtime</option>-->
-                                <option id="optPriorityHigh" value="High">High</option>
-                                <option id="optPriorityAboveNormal" value="AboveNormal">Above Normal</option>
-                                <option id="optPriorityNormal" value="Normal">Normal</option>
-                                <option id="optPriorityBelowNormal" value="BelowNormal">Below Normal</option>
-                                <option id="optPriorityIdle" value="Idle">Idle</option>
-                            </select>
-                        </div>
-                        <br />
-                        <div class="inputContainer">
-                            <input is="emby-input" type="number" id="processThreads" pattern="[0-9]*" required="" label="FFmpeg Threads" />
-                            <div class="fieldDescription">The number of threads to pass to the "-threads" argument of ffmpeg.</div>
-                            <div class="fieldDescription">Applies to both input and output of ffmpeg, so the total threads used will be <strong>this * 2</strong>.</div>
-                            <div class="fieldDescription"><strong>-1:</strong> The option "-1" will use the same amount of threads as configured in Jellyfin, usually "0".</div>
-                            <div class="fieldDescription"><strong>0:</strong> The option "0" is the default for ffmpeg, utilizing as many threads/cores as possible.</div>
-                        </div>
-                        <br />
-                        <div class="inputContainer">
-                            <label>
-                                <input is="emby-checkbox" type="checkbox" id="chkEnableDuringScan" />
-                                <span>Create trickplays when videos are discovered</span>
-                            </label>
-                            <div class="fieldDescription checkboxFieldDescription">This will make trickplay files available sooner but will result in longer library scans. Trickplay files are also created during a scheduled task.</div>
-                            <div class="fieldDescription checkboxFieldDescription">To configure the scheduled task, see <a is="emby-linkbutton" class="button-link" href="scheduledtasks.html">scheduled tasks</a>.</div>
-                        </div>
-                        <div class="inputContainer" id="scanBehaviourContainer" style="display: none">
-                            <select is="emby-select" id="metadataScanBehaviour" name="Scan Behaviour" label="Scan Behaviour">
-                                <option id="optNonBlocking" value="NonBlocking">Non Blocking - queues generation, then returns</option>
-                                <option id="optBlocking" value="Blocking">Blocking - queues generation, blocks scan until complete</option>
-                            </select>
-                            <div class="fieldDescription">The default behavior is non blocking, which will add media to the library before trickplay generation is done.</div>
-                            <div class="fieldDescription">Blocking will ensure trickplay files are generated before media is added to the library, but will make scans significantly longer.</div>
-                        </div>
-                        <br />
-                        <div>
-                            <button is="emby-button" type="submit" class="raised button-submit block emby-button">
-                                <span>Save</span>
-                            </button>
-                        </div>
-                    </form>
-                </div>
+                    </div>
+                    <br />
+                    <div class="inputContainer">
+                        <select is="emby-select" id="qScaleInputValue" name="Thumbnail Quality" label="Thumbnail Quality">
+                            <option id="opt0" value="0">Disabled</option>
+                            <option id="opt2" value="2">2</option>
+                            <option id="opt3" value="3">3</option>
+                            <option id="opt4" value="4">4</option>
+                            <option id="opt5" value="5">5</option>
+                            <option id="opt6" value="6">6</option>
+                        </select>
+                        <div class="fieldDescription">A higher value means lower quality and a lower value means higher quality.</div>
+                    </div>
+                    <br />
+                    <div class="inputContainer">
+                        <select is="emby-select" id="hardwareAccelerationValue" name="HW Acceleration" label="HW Acceleration">
+                            <option id="optAccelerationNone" value="None">None</option>
+                            <option id="optAccelerationNoEncode" value="NoEncode">No Encode - decode, filters</option>
+                            <option id="optAccelerationFull" value="Full">Full - decode, filters, encode</option>
+                        </select>
+                        <div class="fieldDescription">Uses the same options as set in "Playback" to HW accelerate BIF generation. Counts towards NVENC stream limit.</div>
+                        <div class="fieldDescription">"Full" will default to SW encode on NVENC and AMF. On VAAPI and QSV devices without mjpeg encode support, set to "No Encode".</div>
+                        <div class="fieldDescription"><strong>Do not use "Full" if using an AMD device through VAAPI.</strong></div>
+                    </div>
+                    <br />
+                    <div class="inputContainer">
+                        <select is="emby-select" id="processPriorityValue" name="Process Priority" label="Process Priority">
+                            <!--<option id="optPriorityRealtime" value="Realtime">Realtime</option>-->
+                            <option id="optPriorityHigh" value="High">High</option>
+                            <option id="optPriorityAboveNormal" value="AboveNormal">Above Normal</option>
+                            <option id="optPriorityNormal" value="Normal">Normal</option>
+                            <option id="optPriorityBelowNormal" value="BelowNormal">Below Normal</option>
+                            <option id="optPriorityIdle" value="Idle">Idle</option>
+                        </select>
+                    </div>
+                    <br />
+                    <div class="inputContainer">
+                        <input is="emby-input" type="number" id="processThreadsValue" pattern="[0-9]*" required="" label="FFmpeg Threads" />
+                        <div class="fieldDescription">The number of threads to pass to the "-threads" argument of ffmpeg.</div>
+                        <div class="fieldDescription">Applies to both input and output of ffmpeg, so the total threads used will be <strong>this * 2</strong>.</div>
+                        <div class="fieldDescription"><strong>-1:</strong> The option "-1" will use the same amount of threads as configured in Jellyfin, usually "0".</div>
+                        <div class="fieldDescription"><strong>0:</strong> The option "0" is the default for ffmpeg, utilizing as many threads/cores as possible.</div>
+                    </div>
+                    <br />
+                    <div class="inputContainer">
+                        <label>
+                            <input is="emby-checkbox" type="checkbox" id="extractionDuringLibraryScanValue" />
+                            <span>Create trickplays when videos are discovered</span>
+                        </label>
+                        <div class="fieldDescription checkboxFieldDescription">This will make trickplay files available sooner but will result in longer library scans. Trickplay files are also created during a scheduled task.</div>
+                        <div class="fieldDescription checkboxFieldDescription">To configure the scheduled task, see <a is="emby-linkbutton" class="button-link" href="scheduledtasks.html">scheduled tasks</a>.</div>
+                    </div>
+                    <div class="inputContainer" id="scanBehaviourContainer" style="display: none">
+                        <select is="emby-select" id="ScanBehaviorValue" name="Scan Behaviour" label="Scan Behaviour">
+                            <option id="optNonBlocking" value="NonBlocking">Non Blocking - queues generation, then returns</option>
+                            <option id="optBlocking" value="Blocking">Blocking - queues generation, blocks scan until complete</option>
+                        </select>
+                        <div class="fieldDescription">The default behavior is non blocking, which will add media to the library before trickplay generation is done.</div>
+                        <div class="fieldDescription">Blocking will ensure trickplay files are generated before media is added to the library, but will make scans significantly longer.</div>
+                    </div>
+                    <br />
+                    <div>
+                        <button is="emby-button" type="submit" class="raised button-submit block emby-button">
+                            <span>Save</span>
+                        </button>
+                    </div>
+                </form>
             </div>
-
-            <script type="text/javascript">
-                function fromIntArray(intArray) {
-                    let text = "";
-
-                    for (let i = 0; i < intArray.length; i++) {
-                        text += intArray[i];
-                        if (i != intArray.length - 1) text += ",";
-                    }
-
-                    return text;
-                }
-
-                function toIntArray(csv) {
-                    let intArray = [];
-                    let strArray = csv.split(",");
-
-                    for (let i = 0; i < strArray.length; i++) {
-                        intArray.push(parseInt(strArray[i].trim()));
-                    }
-
-                    return intArray;
-                }
-
-                (function () {
-                    var pluginId = "6b961c92-5678-45d1-a7ac-dd5003f03460";
-
-                    $(".jellyscrubberrConfigurationPage").on("pageshow", function (event) {
-                        var page = this;
-
-                        Dashboard.showLoadingMsg();
-
-                        ApiClient.getPluginConfiguration(pluginId).then(function (config) {
-                            page.querySelector("#hwAcceleration").value = config.hardwareAcceleration;
-                            page.querySelector("#processPriority").value = config.ProcessPriority;
-                            page.querySelector("#processThreads").value = config.processThreads;
-                            page.querySelector("#qscaleValue").value = config.qScaleValue;
-                            page.querySelector("#intervalInput").value = config.imageInterval;
-                            page.querySelector("#resolutionInput").value = fromIntArray(config.imageWidthResolution);
-
-                            // File management options
-                            page.querySelector("#fileSaveLocation").value = config.fileSaveLocation;
-                            page.querySelector("#customFolderName").value = config.customFolderName;
-
-                            if (config.fileSaveLocation === "CustomFolder") {
-                                page.querySelector("#customFolderNameContainer").style.display = "";
-                            } else {
-                                page.querySelector("#customFolderNameContainer").style.display = "none";
-                            }
-
-                            if (config.LocalMediaFolderSaving === true) {
-                                page.querySelector("#LocalMediaFolderSaving").setAttribute("checked", "checked");
-                                page.querySelector("#fileSaveLocationContainer").style.display = "";
-                            } else {
-                                page.querySelector("#LocalMediaFolderSaving").removeAttribute("checked");
-                                page.querySelector("#fileSaveLocationContainer").style.display = "none";
-                                page.querySelector("#customFolderNameContainer").style.display = "none";
-                            }
-
-                            if (config.extractionDuringLibraryScan === true) {
-                                page.querySelector("#chkEnableDuringScan").setAttribute("checked", "checked");
-                                page.querySelector("#scanBehaviourContainer").style.display = "";
-                            } else {
-                                page.querySelector("#chkEnableDuringScan").removeAttribute("checked");
-                                page.querySelector("#scanBehaviourContainer").style.display = "none";
-                            }
-
-                            Dashboard.hideLoadingMsg();
-                        });
-                    });
-
-                    $(".jellyscrubberrConfigurationForm")
-                        .on("change", "#chkEnableDuringScan", function (e) {
-                            var scanBehaviourContainer = this.closest(".jellyscrubberrConfigurationForm").querySelector("#scanBehaviourContainer");
-                            if (this.checked) {
-                                scanBehaviourContainer.style.display = "";
-                            } else {
-                                scanBehaviourContainer.style.display = "none";
-                            }
-                        })
-
-                        // handle the custom folder input visibility
-                        .on("change", "#LocalMediaFolderSaving", function (e) {
-                            var fileSaveLocationContainer = this.closest(".jellyscrubberrConfigurationForm").querySelector("#fileSaveLocationContainer");
-                            if (this.checked) {
-                                fileSaveLocationContainer.style.display = "";
-                            } else {
-                                fileSaveLocationContainer.style.display = "none";
-                            }
-                        })
-
-                        .on("change", "#fileSaveLocation", function (e) {
-                            var customFolderNameContainer = this.closest(".jellyscrubberrConfigurationForm").querySelector("#customFolderNameContainer");
-                            if (this.value === "CustomFolder") {
-                                customFolderNameContainer.style.display = "";
-                            } else {
-                                customFolderNameContainer.style.display = "none";
-                            }
-                        })
-
-                        .off("submit.plugin")
-                        .on("submit.plugin", function (e) {
-                            Dashboard.showLoadingMsg();
-
-                            var form = this;
-
-                            ApiClient.getPluginConfiguration(pluginId).then(function (config) {
-                                config.hardwareAcceleration = form.querySelector("#hwAcceleration").value;
-                                config.ProcessPriority = form.querySelector("#processPriority").value;
-                                config.processThreads = form.querySelector("#processThreads").value;
-                                config.LocalMediaFolderSaving = form.querySelector("#LocalMediaFolderSaving").checked;
-                                config.fileSaveLocation = form.querySelector("#fileSaveLocation").value;
-                                config.customFolderName = form.querySelector("#customFolderName").value;
-                                config.qScaleValue = form.querySelector("#qscaleValue").value;
-                                config.extractionDuringLibraryScan = form.querySelector("#chkEnableDuringScan").checked;
-                                config.imageInterval = Math.max(0, form.querySelector("#intervalInput").value);
-                                config.imageWidthResolution = toIntArray(form.querySelector("#resolutionInput").value);
-                                ApiClient.updatePluginConfiguration(pluginId, config).then(Dashboard.processPluginConfigurationUpdateResult);
-                            });
-                            return false;
-                        });
-                })();
-            </script>
         </div>
-    </body>
-</html>
+    </div>
+</body>
