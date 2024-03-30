@@ -10,4 +10,7 @@ temp
 
 # ignore bin and obj folders
 bin
-obj 
+obj
+
+# ignore artifacts folder
+artifacts
