@@ -11,5 +11,5 @@ category: "General"
 artifacts:
   - "Casper.Plugin.Jellyscrubberr/bin/publish/Casper.Plugin.Jellyscrubberr.dll"
 build_type: "dotnet"
-dotnet_configuration: "publish"
+dotnet_configuration: "debug"
 dotnet_framework: "net6.0"
