@@ -1,8 +1,0 @@
-name: jprm-build
-run-name: ${{ github.actor }} is creating a Jellyfin plugin repository build
-on: [push]
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: oddstr13/jellyfin-plugin-repository-manager@v1.1.0
