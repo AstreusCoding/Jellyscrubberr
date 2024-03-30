@@ -13,7 +13,9 @@
 
   <ItemGroup>
     <EmbeddedResource Include="Configuration\configPage.html" />
+    <EmbeddedResource Include="Configuration\configPage.js" />
     <EmbeddedResource Include="Api\trickplay.js" />
+
   </ItemGroup>
 
 </Project>

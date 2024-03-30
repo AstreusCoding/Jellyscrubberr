@@ -17,18 +17,10 @@ namespace Casper.Plugin.Jellyscrubberr;
 /// </summary>
 public class JellyscrubberrPlugin : BasePlugin<PluginConfiguration>, IHasWebPages
 {
-    /// <inheritdoc />
     public override string Name => "Jellyscrubberr";
-
-    /// <inheritdoc />
     public override Guid Id => Guid.Parse("6b961c92-5678-45d1-a7ac-dd5003f03460");
-
-    /// <inheritdoc />
     public override string Description => "Smooth mouse-over video scrubbing previews.";
 
-    /// <summary>
-    /// Initializes a new instance of the <see cref="JellyscrubberrPlugin"/> class.
-    /// </summary>
     public JellyscrubberrPlugin(
         IApplicationPaths applicationPaths,
         IXmlSerializer xmlSerializer,
@@ -99,23 +91,22 @@ public class JellyscrubberrPlugin : BasePlugin<PluginConfiguration>, IHasWebPage
             }
         }
     }
-
-
-    /// <summary>
-    /// Gets the current plugin instance.
-    /// </summary>
     public static JellyscrubberrPlugin? Instance { get; private set; }
-
-    /// <inheritdoc />
+    public PluginConfiguration PluginConfiguration => Configuration;
     public IEnumerable<PluginPageInfo> GetPages()
     {
         return new[]
         {
             new PluginPageInfo
             {
-                Name = "Jellyscrubberr",
-                EmbeddedResourcePath = GetType().Namespace + ".Configuration.configPage.html"
-
+                Name = "configPage",
+                EmbeddedResourcePath = GetType().Namespace + ".Configuration.configPage.html",
+                EnableInMainMenu = true
+            },
+            new PluginPageInfo
+            {
+                Name = "configPage.js",
+                EmbeddedResourcePath = GetType().Namespace + ".Configuration.configPage.js"
             }
         };
     }

@@ -20,7 +20,7 @@ namespace Casper.Plugin.Jellyscrubberr.ScheduledTasks;
 /// </summary>
 public class BIFGenerationTask : IScheduledTask
 {
-    private readonly ILogger<BIFGenerationTask> _logger;
+    private static ILogger<BIFGenerationTask> _logger = null!;
     private readonly ILoggerFactory _loggerFactory;
     private readonly ILibraryManager _libraryManager;
     private readonly IFileSystem _fileSystem;
@@ -94,30 +94,7 @@ public class BIFGenerationTask : IScheduledTask
         }).OfType<Video>().ToList();
 
         var numComplete = 0;
-
-        // run VideoProcessor DoesItemHaveManifest method for each item before processing to show an accurate progress bar for the user
-        // clone the list to avoid modifying the list while iterating
-        foreach (var item in items.ToList())
-        {
-            try
-            {
-                // if item has manifest, skip processing for this item by removing it from the list
-                if (await new VideoProcessor(_loggerFactory, _loggerFactory.CreateLogger<VideoProcessor>(), _mediaEncoder, _configurationManager, _fileSystem, _appPaths, _libraryMonitor, _encodingHelper)
-                    .DoesItemHaveManifest(item, _fileSystem))
-                {
-                    _logger.LogInformation("Item {0} already has manifest, skipping processing", item.Name);
-                    items.Remove(item);
-                }
-            }
-            catch (OperationCanceledException)
-            {
-                break;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError("Error checking for manifest for {0}: {1}", item.Name, ex);
-            }
-        }
+        _logger.LogInformation("Processing {0} items", items.Count);
 
         foreach (var item in items)
         {
